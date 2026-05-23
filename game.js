@@ -1,8 +1,5 @@
-// ══════════════════════════════════════════════
-//  画像読み込み
-// ══════════════════════════════════════════════
 const startImg = new Image();
-startImg.src = 'images/start_bg.png';
+startImg.src = 'images/start_bg.png'; // 画像のパスを指定
 
 // ══════════════════════════════════════════════
 //  単語リスト（ローマ字入力対応）
@@ -156,7 +153,7 @@ const TNT_RADIUS = 120;
 function initFloors() {
   floors = FLOOR_DEFS.map((def, i) => ({
     ...def,
-    hp:     (i === 0 || i === 4) ? 999 : FLOOR_MAX_HP,
+    hp:     i === 4 ? 999 : FLOOR_MAX_HP,
     broken: false,
     shakeT: 0,
   }));
@@ -225,11 +222,11 @@ function spawnBarrel() {
 // ══════════════════════════════════════════════
 //  描画：背景・足場
 // ══════════════════════════════════════════════
- if (!gameRunning) {
-    ctx.drawImage(startImg, 0, 0, 640, 560);
-    return;
- }
 function drawBG() {
+  if (!gameRunning) {
+    ctx.drawImage(strtIMG, 0, 0, 640, 560);
+    return;
+  }
   ctx.fillStyle = '#0a0005';
   ctx.fillRect(0, 0, 640, 560);
 
