@@ -420,7 +420,7 @@ function drawBarrel(b) {
   ctx.restore();
 
   // 単語ラベル：display（ひらがな or 英語）を表示、input で判定
-  const fSize = b.isTNT ? 12 : (useJP ? 13 : 10);
+  const fSize = b.isTNT ? 14 : (useJP ? 18 : 14);
   ctx.font = `bold ${fSize}px ${useJP && !b.isTNT ? 'sans-serif' : "'Press Start 2P'"}`;
   const tw = ctx.measureText(b.display).width;
 
@@ -434,17 +434,20 @@ function drawBarrel(b) {
   const dw        = ctx.measureText(donePart).width;
 
   const lx = b.x - tw / 2;
-  const ly = b.y - BARREL_R - 8;
+  const ly = b.y - BARREL_R - 12;
 
   ctx.fillStyle = b.isTNT ? 'rgba(60,0,0,0.9)' : 'rgba(0,0,0,0.78)';
   ctx.beginPath();
-  roundRect(lx - 5, ly - 13, tw + 10, 18, 3);
+  roundRect(lx - 6, ly - 16, tw + 12, 24, 4);
   ctx.fill();
 
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+  ctx.shadowBlur = 6;
   ctx.fillStyle = '#44ff88';
   ctx.fillText(donePart, lx, ly);
   ctx.fillStyle = b.isTNT ? '#ffcc00' : '#fff';
   ctx.fillText(restPart, lx + dw, ly);
+  ctx.shadowBlur = 0;
 
   // 入力中のローマ字をサブ表示（JPモードのみ）
   if (useJP && b.typed.length > 0 && !b.isTNT) {
