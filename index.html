@@ -20,19 +20,15 @@
   <div id="input-box">　</div>
 
   <div id="overlay">
-    <h1>🦍 DD KONG<br>TYPING</h1>
-    <p class="sub">
-      樽の単語をローマ字でタイプして消せ！<br>
-      🧨 TNT と打つと爆発して周囲を巻き込む！<br>
-      足場は樽が通ると崩れていく！
-    </p>
-    <div id="diff-wrap">
-      <button class="diff-btn active" onclick="setDiff(0,this)">EASY</button>
-      <button class="diff-btn"        onclick="setDiff(1,this)">NORMAL</button>
-      <button class="diff-btn"        onclick="setDiff(2,this)">HARD</button>
+    <div class="menu-panel">
+      <div id="diff-wrap">
+        <button class="diff-btn active" onclick="setDiff(0,this)">EASY</button>
+        <button class="diff-btn"        onclick="setDiff(1,this)">NORMAL</button>
+        <button class="diff-btn"        onclick="setDiff(2,this)">HARD</button>
+      </div>
+      <button id="start-btn" onclick="startGame()">START</button>
+      <button id="mode-btn" onclick="toggleMode()">モード: ひらがな(roma)</button>
     </div>
-    <button onclick="startGame()">▶ START</button>
-    <button id="mode-btn" onclick="toggleMode()">モード: ひらがな(roma)</button>
   </div>
 </div>
 
