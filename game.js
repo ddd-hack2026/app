@@ -150,7 +150,7 @@ const sLives   = document.getElementById('s-lives');
 
 let floors = [], barrels = [], particles = [], explosions = [];
 let score = 0, lives = 3, level = 1, frame = 0;
-let spawnTimer = 0, spawnInterval = 160, baseSpeed = 0.5;
+let spawnTimer = 0, spawnInterval = 160, baseSpeed = 0.28;
 let gameRunning = false, currentInput = '';
 let gameScene = 'title';
 let useJP = true, diffIndex = 0;
@@ -677,7 +677,7 @@ function loop() {
     spawnTimer = 0;
     spawnBarrel();
     spawnInterval = Math.max(80, spawnInterval - 1);
-    baseSpeed     = Math.min(1.2, baseSpeed + 0.02);
+    baseSpeed     = Math.min(0.9, baseSpeed + 0.003);
     level         = Math.floor(frame / 400) + 1;
     updateHUD();
   }
@@ -709,7 +709,7 @@ function startGame() {
   initFloors();
   barrels = []; particles = []; explosions = [];
   score = 0; lives = 3; level = 1; frame = 0;
-  spawnTimer = 0; spawnInterval = 160; baseSpeed = 0.4;
+  spawnTimer = 0; spawnInterval = 160; baseSpeed = 0.28;
   currentInput = '';
   inputBox.textContent = '　';
   gameRunning = true;
