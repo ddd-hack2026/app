@@ -614,6 +614,28 @@ function updateBarrel(b) {
   if (b.y > 580 || b.x < -60 || b.x > 700) return 'miss';
   return 'ok';
 }
+function normalizeN(str) {
+  return str.replace(/nn/g, 'n');
+}
+
+function inputMatches(typed, targetInput) {
+  if (typed.length === 0) return false;
+  const normTarget = normalizeN(targetInput);
+  if (normTarget.startsWith(normalizeN(typed))) return true;
+  if (typed.endsWith('n')) {
+    if (normTarget.startsWith(normalizeN(typed.slice(0, -1) + 'nn'))) return true;
+  }
+  return false;
+}
+
+function inputComplete(typed, targetInput) {
+  const normTarget = normalizeN(targetInput);
+  if (normalizeN(typed) === normTarget) return true;
+  if (typed.endsWith('n')) {
+    if (normalizeN(typed.slice(0, -1) + 'nn') === normTarget) return true;
+  }
+  return false;
+}
 
 // ══════════════════════════════════════════════
 //  タイピング判定（input文字列で判定）
@@ -621,14 +643,15 @@ function updateBarrel(b) {
 function checkTyping() {
   let target = null;
   for (const b of barrels) {
-    if (b.input.startsWith(currentInput) && currentInput.length > 0) {
+   if (inputMatches(currentInput, b.input)) {
+
       if (!target || currentInput.length > target.typed.length) target = b;
     }
   }
   barrels.forEach(b => b.typed = '');
   if (target) {
     target.typed = currentInput;
-    if (target.typed === target.input) {
+    if (inputComplete(target.typed, target.input) && currentInput.length >= 2) {
       if (target.isTNT) {
         triggerTNT(target);
         barrels = barrels.filter(b => b !== target);
