@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DD KONG TYPING</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="wrap">
+  <canvas id="c" width="640" height="560"></canvas>
+
+  <div id="hud">
+    <span id="s-score">SCORE: 0</span>
+    <span id="s-lv">LV 1</span>
+    <span id="s-lives">❤️❤️❤️</span>
+  </div>
+
+  <div id="input-box">　</div>
+
+  <div id="overlay">
+    <h1>🦍 DD KONG<br>TYPING</h1>
+    <p class="sub">
+      樽の単語をローマ字でタイプして消せ！<br>
+      🧨 TNT と打つと爆発して周囲を巻き込む！<br>
+      足場は樽が通ると崩れていく！
+    </p>
+    <div id="diff-wrap">
+      <button class="diff-btn active" onclick="setDiff(0,this)">EASY</button>
+      <button class="diff-btn"        onclick="setDiff(1,this)">NORMAL</button>
+      <button class="diff-btn"        onclick="setDiff(2,this)">HARD</button>
+    </div>
+    <button onclick="startGame()">▶ START</button>
+    <button id="mode-btn" onclick="toggleMode()">モード: ひらがな(roma)</button>
+  </div>
+</div>
+
+<p class="hint">IMEをオフ（半角モード）にしてプレイしてください</p>
+
+<script src="game.js"></script>
+</body>
+</html>
