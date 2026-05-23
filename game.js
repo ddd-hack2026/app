@@ -1,5 +1,11 @@
+// ══════════════════════════════════════════════
+//  画像読み込み
+// ══════════════════════════════════════════════
 const startImg = new Image();
-startImg.src = 'images/start_bg.png'; // 画像のパスを指定
+startImg.src = 'images/start_bg.png';
+
+const gameoverImg = new Image();
+gameoverImg.src = 'images/gameover_bg.png'; // 新しい画像ファイル名に合わせてください
 
 // ══════════════════════════════════════════════
 //  単語リスト（ローマ字入力対応）
@@ -139,8 +145,9 @@ const sLives   = document.getElementById('s-lives');
 
 let floors = [], barrels = [], particles = [], explosions = [];
 let score = 0, lives = 3, level = 1, frame = 0;
-let spawnTimer = 0, spawnInterval = 160, baseSpeed = 0.9;
+let spawnTimer = 0, spawnInterval = 160, baseSpeed = 1.2;
 let gameRunning = false, currentInput = '';
+let gameScene = 'title';
 let useJP = true, diffIndex = 0;
 const DIFFS      = ['easy', 'normal', 'hard'];
 const GRAVITY    = 0.35;
@@ -153,7 +160,7 @@ const TNT_RADIUS = 120;
 function initFloors() {
   floors = FLOOR_DEFS.map((def, i) => ({
     ...def,
-    hp:     i === 4 ? 999 : FLOOR_MAX_HP,
+    hp:     (i === 0 || i === 4) ? 999 : FLOOR_MAX_HP,
     broken: false,
     shakeT: 0,
   }));
@@ -204,7 +211,7 @@ function getWordEntry() {
 
 function spawnBarrel() {
   const entry  = getWordEntry();
-  const speed  = baseSpeed + Math.random() * 0.3 + diffIndex * 0.15;
+  const speed  = baseSpeed + Math.random() * 0.2 + diffIndex * 0.1;
   const fl0    = floors[0];
   const sx     = fl0.x + 30;
   const sy     = floorY(fl0, sx) - BARREL_R;
@@ -222,11 +229,45 @@ function spawnBarrel() {
 // ══════════════════════════════════════════════
 //  描画：背景・足場
 // ══════════════════════════════════════════════
-function drawBG() {
-  if (!gameRunning) {
-    ctx.drawImage(strtIMG, 0, 0, 640, 560);
+function drawStartImage() {
+  if (!startImg.complete) {
+    ctx.fillStyle = '#0a0005';
+    ctx.fillRect(0, 0, 640, 560);
     return;
   }
+
+  const imgW = startImg.naturalWidth || startImg.width;
+  const imgH = startImg.naturalHeight || startImg.height;
+  const canvasRatio = 640 / 560;
+  const imgRatio = imgW / imgH;
+
+  let drawW, drawH, dx, dy;
+  if (imgRatio > canvasRatio) {
+    drawH = 560;
+    drawW = drawH * imgRatio;
+    dx = (640 - drawW) / 2;
+    dy = 0;
+  } else {
+    drawW = 640;
+    drawH = drawW / imgRatio;
+    dx = 0;
+    dy = (560 - drawH) / 2;
+  }
+
+  ctx.drawImage(startImg, dx, dy, drawW, drawH);
+}
+
+function drawBG() {
+  if (gameScene === 'gameover') {
+    drawGameoverBG();
+    return;
+  }
+
+  if (gameScene === 'title') {
+    drawStartImage();
+    return;
+  }
+
   ctx.fillStyle = '#0a0005';
   ctx.fillRect(0, 0, 640, 560);
 
@@ -611,9 +652,18 @@ document.addEventListener('keydown', e => {
 //  メインループ
 // ══════════════════════════════════════════════
 function loop() {
-  if (!gameRunning) return;
   ctx.clearRect(0, 0, 640, 560);
   drawBG();
+
+  if (gameScene === 'gameover') {
+    return;
+  }
+
+  if (!gameRunning) {
+    requestAnimationFrame(loop);
+    return;
+  }
+
   drawKong();
   frame++;
   spawnTimer++;
@@ -621,8 +671,8 @@ function loop() {
   if (spawnTimer >= spawnInterval) {
     spawnTimer = 0;
     spawnBarrel();
-    spawnInterval = Math.max(60, spawnInterval - 2);
-    baseSpeed     = Math.min(2.5, baseSpeed + 0.03);
+    spawnInterval = Math.max(50, spawnInterval - 3);
+    baseSpeed     = Math.min(3.5, baseSpeed + 0.05);
     level         = Math.floor(frame / 400) + 1;
     updateHUD();
   }
@@ -654,17 +704,47 @@ function startGame() {
   initFloors();
   barrels = []; particles = []; explosions = [];
   score = 0; lives = 3; level = 1; frame = 0;
-  spawnTimer = 0; spawnInterval = 160; baseSpeed = 1.2;
+  spawnTimer = 0; spawnInterval = 160; baseSpeed = 0.4;
   currentInput = '';
   inputBox.textContent = '　';
   gameRunning = true;
+  gameScene = 'playing';
   overlay.style.display = 'none';
   updateHUD();
   loop();
 }
 
+
+function drawGameoverBG() {
+  if (!gameoverImg.complete) {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, 640, 560);
+    return;
+  }
+  const imgW = gameoverImg.naturalWidth || gameoverImg.width;
+  const imgH = gameoverImg.naturalHeight || gameoverImg.height;
+  const canvasRatio = 640 / 560;
+  const imgRatio = imgW / imgH;
+  let drawW, drawH, dx, dy;
+  if (imgRatio > canvasRatio) {
+    drawH = 560;
+    drawW = drawH * imgRatio;
+    dx = (640 - drawW) / 2;
+    dy = 0;
+  } else {
+    drawW = 640;
+    drawH = drawW / imgRatio;
+    dx = 0;
+    dy = (560 - drawH) / 2;
+  }
+  ctx.drawImage(gameoverImg, dx, dy, drawW, drawH);
+}
+
 function endGame() {
   gameRunning = false;
+  gameScene = 'gameover';
+  ctx.clearRect(0, 0, 640, 560);
+  drawGameoverBG();
   overlay.style.display = 'flex';
   overlay.innerHTML = `
     <h1>GAME<br>OVER</h1>
@@ -673,3 +753,14 @@ function endGame() {
     <button onclick="location.reload()">▶ もう一度</button>
   `;
 }
+
+if (!gameoverImg.complete) {
+  gameoverImg.onload = () => {
+    if (gameScene === 'gameover') {
+      ctx.clearRect(0, 0, 640, 560);
+      drawGameoverBG();
+    }
+  };
+}
+
+loop();
