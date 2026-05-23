@@ -225,11 +225,12 @@ function spawnBarrel() {
 // ══════════════════════════════════════════════
 //  描画：背景・足場
 // ══════════════════════════════════════════════
- if (!gameRunning) {
+function drawBG() {
+  if (!gameRunning) {
     ctx.drawImage(startImg, 0, 0, 640, 560);
     return;
  }
-function drawBG() {
+//ゲーム中の背景
   ctx.fillStyle = '#0a0005';
   ctx.fillRect(0, 0, 640, 560);
 
