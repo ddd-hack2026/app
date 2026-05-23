@@ -645,10 +645,20 @@ function checkTyping() {
 }
 
 document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    currentInput = '';
+    inputBox.textContent = '　';
+    barrels.forEach(b => b.typed = '');
+    return;
+  }
+
   if (!gameRunning) return;
+
   if (e.key === 'Backspace') currentInput = currentInput.slice(0, -1);
   else if (e.key.length === 1) currentInput += e.key;
   else return;
+
   inputBox.textContent = currentInput || '　';
   checkTyping();
 });
