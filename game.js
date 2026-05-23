@@ -139,7 +139,7 @@ const sLives   = document.getElementById('s-lives');
 
 let floors = [], barrels = [], particles = [], explosions = [];
 let score = 0, lives = 3, level = 1, frame = 0;
-let spawnTimer = 0, spawnInterval = 160, baseSpeed = 1.2;
+let spawnTimer = 0, spawnInterval = 160, baseSpeed = 0.9;
 let gameRunning = false, currentInput = '';
 let useJP = true, diffIndex = 0;
 const DIFFS      = ['easy', 'normal', 'hard'];
@@ -204,7 +204,7 @@ function getWordEntry() {
 
 function spawnBarrel() {
   const entry  = getWordEntry();
-  const speed  = baseSpeed + Math.random() * 0.5 + diffIndex * 0.25;
+  const speed  = baseSpeed + Math.random() * 0.3 + diffIndex * 0.15;
   const fl0    = floors[0];
   const sx     = fl0.x + 30;
   const sy     = floorY(fl0, sx) - BARREL_R;
@@ -621,8 +621,8 @@ function loop() {
   if (spawnTimer >= spawnInterval) {
     spawnTimer = 0;
     spawnBarrel();
-    spawnInterval = Math.max(50, spawnInterval - 3);
-    baseSpeed     = Math.min(3.5, baseSpeed + 0.05);
+    spawnInterval = Math.max(60, spawnInterval - 2);
+    baseSpeed     = Math.min(2.5, baseSpeed + 0.03);
     level         = Math.floor(frame / 400) + 1;
     updateHUD();
   }
