@@ -216,7 +216,7 @@ function getWordEntry() {
 
 function spawnBarrel() {
   const entry  = getWordEntry();
-  const speed  = baseSpeed + Math.random() * 0.06 + diffIndex * 0.03;
+  const speed  = baseSpeed + Math.random() * 0.045 + diffIndex * 0.02;
   const fl0    = floors[0];
   const sx     = fl0.x + 30;
   const sy     = floorY(fl0, sx) - BARREL_R;
@@ -590,15 +590,12 @@ function updateBarrel(b) {
     const fy = floorY(fl, b.x) - BARREL_R;
     if (b.y >= fy && b.y <= fy + 30 && b.vy >= 0) {
       b.y = fy; b.vy = 0; b.floorIdx = i; b.falling = false;
-      const angle        = floorAngle(fl);
-      const gravity_along = Math.sin(angle) * 9.8 * 0.04;
       if (!b.vxSet) {
         b.vx    = fl.tilt >= 0 ? Math.abs(b.vx) : -Math.abs(b.vx);
         b.vxSet = true;
         damageFloor(fl, 1);
       }
-      b.vx += gravity_along * Math.sign(b.vx || 1);
-      b.vx  = Math.max(-5, Math.min(5, b.vx));
+      b.vx  = Math.max(-4.2, Math.min(4.2, b.vx));
       landed = true;
       break;
     }
@@ -609,11 +606,11 @@ function updateBarrel(b) {
   if (!b.falling && b.floorIdx >= 0) {
     const fl = floors[b.floorIdx];
     if (fl.broken || b.x > fl.x + fl.w + BARREL_R || b.x < fl.x - BARREL_R) {
-      b.falling = true; b.floorIdx = -1; b.vxSet = false; b.vy = 0.5;
+      b.falling = true; b.floorIdx = -1; b.vxSet = false; b.vy = 0.35;
     }
   }
 
-  b.rot += b.vx * 0.06;
+  b.rot += b.vx * 0.05;
   if (b.y > 580 || b.x < -60 || b.x > 700) return 'miss';
   return 'ok';
 }
@@ -690,7 +687,7 @@ function loop() {
     spawnTimer = 0;
     spawnBarrel();
     spawnInterval = Math.max(80, spawnInterval - 1);
-    baseSpeed     = Math.min(0.65, baseSpeed + 0.0005);
+    baseSpeed     = Math.min(0.65, baseSpeed + 0.5);
     level         = Math.floor(frame / 400) + 1;
     updateHUD();
   }
