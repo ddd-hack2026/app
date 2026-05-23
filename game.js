@@ -124,7 +124,7 @@ const FLOOR_H      = 14;
 const BARREL_R     = 14;
 const FLOOR_MAX_HP = 6;
 const FLOOR_HP_OVERRIDES = {
-  1: 10,
+  1: 100,
   2: 7,
   3: 3,
 };
@@ -150,12 +150,12 @@ const sLives   = document.getElementById('s-lives');
 
 let floors = [], barrels = [], particles = [], explosions = [];
 let score = 0, lives = 3, level = 1, frame = 0;
-let spawnTimer = 0, spawnInterval = 160, baseSpeed = 0.28;
+let spawnTimer = 0, spawnInterval = 160, baseSpeed = 0.2;
 let gameRunning = false, currentInput = '';
 let gameScene = 'title';
 let useJP = true, diffIndex = 0;
 const DIFFS      = ['easy', 'normal', 'hard'];
-const GRAVITY    = 0.35;
+const GRAVITY    = 0.2;
 const TNT_CHANCE = 0.18;
 const TNT_RADIUS = 120;
 
@@ -216,7 +216,7 @@ function getWordEntry() {
 
 function spawnBarrel() {
   const entry  = getWordEntry();
-  const speed  = baseSpeed + Math.random() * 0.12 + diffIndex * 0.06;
+  const speed  = baseSpeed + Math.random() * 0.06 + diffIndex * 0.03;
   const fl0    = floors[0];
   const sx     = fl0.x + 30;
   const sy     = floorY(fl0, sx) - BARREL_R;
@@ -606,7 +606,7 @@ function updateBarrel(b) {
   if (!b.falling && b.floorIdx >= 0) {
     const fl = floors[b.floorIdx];
     if (fl.broken || b.x > fl.x + fl.w + BARREL_R || b.x < fl.x - BARREL_R) {
-      b.falling = true; b.floorIdx = -1; b.vxSet = false; b.vy = 1;
+      b.falling = true; b.floorIdx = -1; b.vxSet = false; b.vy = 0.5;
     }
   }
 
@@ -677,7 +677,7 @@ function loop() {
     spawnTimer = 0;
     spawnBarrel();
     spawnInterval = Math.max(80, spawnInterval - 1);
-    baseSpeed     = Math.min(0.9, baseSpeed + 0.003);
+    baseSpeed     = Math.min(0.65, baseSpeed + 0.0005);
     level         = Math.floor(frame / 400) + 1;
     updateHUD();
   }
@@ -709,7 +709,7 @@ function startGame() {
   initFloors();
   barrels = []; particles = []; explosions = [];
   score = 0; lives = 3; level = 1; frame = 0;
-  spawnTimer = 0; spawnInterval = 160; baseSpeed = 0.28;
+  spawnTimer = 0; spawnInterval = 160; baseSpeed = 0.2;
   currentInput = '';
   inputBox.textContent = '　';
   gameRunning = true;
