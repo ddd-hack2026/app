@@ -145,7 +145,7 @@ const sLives   = document.getElementById('s-lives');
 
 let floors = [], barrels = [], particles = [], explosions = [];
 let score = 0, lives = 3, level = 1, frame = 0;
-let spawnTimer = 0, spawnInterval = 160, baseSpeed = 0.4;
+let spawnTimer = 0, spawnInterval = 160, baseSpeed = 1.2;
 let gameRunning = false, currentInput = '';
 let gameScene = 'title';
 let useJP = true, diffIndex = 0;
@@ -671,8 +671,8 @@ function loop() {
   if (spawnTimer >= spawnInterval) {
     spawnTimer = 0;
     spawnBarrel();
-    spawnInterval = Math.max(130, spawnInterval - 1);
-    baseSpeed     = Math.min(1.5, baseSpeed + 0.005);
+    spawnInterval = Math.max(50, spawnInterval - 3);
+    baseSpeed     = Math.min(3.5, baseSpeed + 0.05);
     level         = Math.floor(frame / 400) + 1;
     updateHUD();
   }
