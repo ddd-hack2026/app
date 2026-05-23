@@ -124,7 +124,9 @@ const FLOOR_H      = 14;
 const BARREL_R     = 14;
 const FLOOR_MAX_HP = 6;
 const FLOOR_HP_OVERRIDES = {
-  1: 100,
+  1: 10,
+  2: 7,
+  3: 3,
 };
 
 const FLOOR_DEFS = [
