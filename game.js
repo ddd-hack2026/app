@@ -153,7 +153,7 @@ const TNT_RADIUS = 120;
 function initFloors() {
   floors = FLOOR_DEFS.map((def, i) => ({
     ...def,
-    hp:     i === 4 ? 999 : FLOOR_MAX_HP,
+    hp:     (i === 0 || i === 4) ? 999 : FLOOR_MAX_HP,
     broken: false,
     shakeT: 0,
   }));
