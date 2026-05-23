@@ -123,6 +123,9 @@ const WORDS = {
 const FLOOR_H      = 14;
 const BARREL_R     = 14;
 const FLOOR_MAX_HP = 6;
+const FLOOR_HP_OVERRIDES = {
+  1: 100,
+};
 
 const FLOOR_DEFS = [
   { x: 20,  y: 100, w: 260, tilt: 18,  dropDir:  1 },
@@ -145,7 +148,7 @@ const sLives   = document.getElementById('s-lives');
 
 let floors = [], barrels = [], particles = [], explosions = [];
 let score = 0, lives = 3, level = 1, frame = 0;
-let spawnTimer = 0, spawnInterval = 160, baseSpeed = 0.5;
+let spawnTimer = 0, spawnInterval = 160, baseSpeed = 0.28;
 let gameRunning = false, currentInput = '';
 let gameScene = 'title';
 let useJP = true, diffIndex = 0;
@@ -160,7 +163,7 @@ const TNT_RADIUS = 120;
 function initFloors() {
   floors = FLOOR_DEFS.map((def, i) => ({
     ...def,
-    hp:     (i === 0 || i === 4) ? 999 : FLOOR_MAX_HP,
+    hp:     (i === 0 || i === 4) ? 999 : (FLOOR_HP_OVERRIDES[i] ?? FLOOR_MAX_HP),
     broken: false,
     shakeT: 0,
   }));
@@ -672,7 +675,7 @@ function loop() {
     spawnTimer = 0;
     spawnBarrel();
     spawnInterval = Math.max(80, spawnInterval - 1);
-    baseSpeed     = Math.min(1.2, baseSpeed + 0.02);
+    baseSpeed     = Math.min(0.9, baseSpeed + 0.003);
     level         = Math.floor(frame / 400) + 1;
     updateHUD();
   }
@@ -704,7 +707,7 @@ function startGame() {
   initFloors();
   barrels = []; particles = []; explosions = [];
   score = 0; lives = 3; level = 1; frame = 0;
-  spawnTimer = 0; spawnInterval = 160; baseSpeed = 0.4;
+  spawnTimer = 0; spawnInterval = 160; baseSpeed = 0.28;
   currentInput = '';
   inputBox.textContent = '　';
   gameRunning = true;
