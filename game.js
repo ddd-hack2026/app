@@ -123,6 +123,11 @@ const WORDS = {
 const FLOOR_H      = 14;
 const BARREL_R     = 14;
 const FLOOR_MAX_HP = 6;
+const FLOOR_HP_OVERRIDES = {
+  1: 10,
+  2: 7,
+  3: 3,
+};
 
 const FLOOR_DEFS = [
   { x: 20,  y: 100, w: 260, tilt: 18,  dropDir:  1 },
@@ -160,7 +165,7 @@ const TNT_RADIUS = 120;
 function initFloors() {
   floors = FLOOR_DEFS.map((def, i) => ({
     ...def,
-    hp:     (i === 0 || i === 4) ? 999 : FLOOR_MAX_HP,
+    hp:     (i === 0 || i === 4) ? 999 : (FLOOR_HP_OVERRIDES[i] ?? FLOOR_MAX_HP),
     broken: false,
     shakeT: 0,
   }));
