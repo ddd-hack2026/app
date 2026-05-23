@@ -123,6 +123,11 @@ const WORDS = {
 const FLOOR_H      = 14;
 const BARREL_R     = 14;
 const FLOOR_MAX_HP = 6;
+const FLOOR_HP_OVERRIDES = {
+  1: 100,
+  2: 7,
+  3: 3,
+};
 
 const FLOOR_DEFS = [
   { x: 20,  y: 100, w: 260, tilt: 18,  dropDir:  1 },
@@ -145,12 +150,12 @@ const sLives   = document.getElementById('s-lives');
 
 let floors = [], barrels = [], particles = [], explosions = [];
 let score = 0, lives = 3, level = 1, frame = 0;
-let spawnTimer = 0, spawnInterval = 160, baseSpeed = 0.5;
+let spawnTimer = 0, spawnInterval = 160, baseSpeed = 0.2;
 let gameRunning = false, currentInput = '';
 let gameScene = 'title';
 let useJP = true, diffIndex = 0;
 const DIFFS      = ['easy', 'normal', 'hard'];
-const GRAVITY    = 0.35;
+const GRAVITY    = 0.2;
 const TNT_CHANCE = 0.18;
 const TNT_RADIUS = 120;
 
@@ -160,7 +165,7 @@ const TNT_RADIUS = 120;
 function initFloors() {
   floors = FLOOR_DEFS.map((def, i) => ({
     ...def,
-    hp:     (i === 0 || i === 4) ? 999 : FLOOR_MAX_HP,
+    hp:     (i === 0 || i === 4) ? 999 : (FLOOR_HP_OVERRIDES[i] ?? FLOOR_MAX_HP),
     broken: false,
     shakeT: 0,
   }));
@@ -211,7 +216,7 @@ function getWordEntry() {
 
 function spawnBarrel() {
   const entry  = getWordEntry();
-  const speed  = baseSpeed + Math.random() * 0.12 + diffIndex * 0.06;
+  const speed  = baseSpeed + Math.random() * 0.045 + diffIndex * 0.02;
   const fl0    = floors[0];
   const sx     = fl0.x + 30;
   const sy     = floorY(fl0, sx) - BARREL_R;
@@ -415,7 +420,7 @@ function drawBarrel(b) {
   ctx.restore();
 
   // 単語ラベル：display（ひらがな or 英語）を表示、input で判定
-  const fSize = b.isTNT ? 12 : (useJP ? 13 : 10);
+  const fSize = b.isTNT ? 14 : (useJP ? 18 : 14);
   ctx.font = `bold ${fSize}px ${useJP && !b.isTNT ? 'sans-serif' : "'Press Start 2P'"}`;
   const tw = ctx.measureText(b.display).width;
 
@@ -429,17 +434,20 @@ function drawBarrel(b) {
   const dw        = ctx.measureText(donePart).width;
 
   const lx = b.x - tw / 2;
-  const ly = b.y - BARREL_R - 8;
+  const ly = b.y - BARREL_R - 12;
 
   ctx.fillStyle = b.isTNT ? 'rgba(60,0,0,0.9)' : 'rgba(0,0,0,0.78)';
   ctx.beginPath();
-  roundRect(lx - 5, ly - 13, tw + 10, 18, 3);
+  roundRect(lx - 6, ly - 16, tw + 12, 24, 4);
   ctx.fill();
 
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+  ctx.shadowBlur = 6;
   ctx.fillStyle = '#44ff88';
   ctx.fillText(donePart, lx, ly);
   ctx.fillStyle = b.isTNT ? '#ffcc00' : '#fff';
   ctx.fillText(restPart, lx + dw, ly);
+  ctx.shadowBlur = 0;
 
   // 入力中のローマ字をサブ表示（JPモードのみ）
   if (useJP && b.typed.length > 0 && !b.isTNT) {
@@ -582,15 +590,12 @@ function updateBarrel(b) {
     const fy = floorY(fl, b.x) - BARREL_R;
     if (b.y >= fy && b.y <= fy + 30 && b.vy >= 0) {
       b.y = fy; b.vy = 0; b.floorIdx = i; b.falling = false;
-      const angle        = floorAngle(fl);
-      const gravity_along = Math.sin(angle) * 9.8 * 0.04;
       if (!b.vxSet) {
         b.vx    = fl.tilt >= 0 ? Math.abs(b.vx) : -Math.abs(b.vx);
         b.vxSet = true;
         damageFloor(fl, 1);
       }
-      b.vx += gravity_along * Math.sign(b.vx || 1);
-      b.vx  = Math.max(-5, Math.min(5, b.vx));
+      b.vx  = Math.max(-4.2, Math.min(4.2, b.vx));
       landed = true;
       break;
     }
@@ -601,13 +606,35 @@ function updateBarrel(b) {
   if (!b.falling && b.floorIdx >= 0) {
     const fl = floors[b.floorIdx];
     if (fl.broken || b.x > fl.x + fl.w + BARREL_R || b.x < fl.x - BARREL_R) {
-      b.falling = true; b.floorIdx = -1; b.vxSet = false; b.vy = 1;
+      b.falling = true; b.floorIdx = -1; b.vxSet = false; b.vy = 0.35;
     }
   }
 
-  b.rot += b.vx * 0.06;
+  b.rot += b.vx * 0.05;
   if (b.y > 580 || b.x < -60 || b.x > 700) return 'miss';
   return 'ok';
+}
+function normalizeN(str) {
+  return str.replace(/nn/g, 'n');
+}
+
+function inputMatches(typed, targetInput) {
+  if (typed.length === 0) return false;
+  const normTarget = normalizeN(targetInput);
+  if (normTarget.startsWith(normalizeN(typed))) return true;
+  if (typed.endsWith('n')) {
+    if (normTarget.startsWith(normalizeN(typed.slice(0, -1) + 'nn'))) return true;
+  }
+  return false;
+}
+
+function inputComplete(typed, targetInput) {
+  const normTarget = normalizeN(targetInput);
+  if (normalizeN(typed) === normTarget) return true;
+  if (typed.endsWith('n')) {
+    if (normalizeN(typed.slice(0, -1) + 'nn') === normTarget) return true;
+  }
+  return false;
 }
 
 // ══════════════════════════════════════════════
@@ -616,14 +643,15 @@ function updateBarrel(b) {
 function checkTyping() {
   let target = null;
   for (const b of barrels) {
-    if (b.input.startsWith(currentInput) && currentInput.length > 0) {
+   if (inputMatches(currentInput, b.input)) {
+
       if (!target || currentInput.length > target.typed.length) target = b;
     }
   }
   barrels.forEach(b => b.typed = '');
   if (target) {
     target.typed = currentInput;
-    if (target.typed === target.input) {
+    if (inputComplete(target.typed, target.input) && currentInput.length >= 2) {
       if (target.isTNT) {
         triggerTNT(target);
         barrels = barrels.filter(b => b !== target);
@@ -640,10 +668,20 @@ function checkTyping() {
 }
 
 document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    currentInput = '';
+    inputBox.textContent = '　';
+    barrels.forEach(b => b.typed = '');
+    return;
+  }
+
   if (!gameRunning) return;
+
   if (e.key === 'Backspace') currentInput = currentInput.slice(0, -1);
   else if (e.key.length === 1) currentInput += e.key;
   else return;
+
   inputBox.textContent = currentInput || '　';
   checkTyping();
 });
@@ -672,7 +710,7 @@ function loop() {
     spawnTimer = 0;
     spawnBarrel();
     spawnInterval = Math.max(80, spawnInterval - 1);
-    baseSpeed     = Math.min(1.2, baseSpeed + 0.02);
+    baseSpeed     = Math.min(0.65, baseSpeed + 0.5);
     level         = Math.floor(frame / 400) + 1;
     updateHUD();
   }
@@ -704,7 +742,7 @@ function startGame() {
   initFloors();
   barrels = []; particles = []; explosions = [];
   score = 0; lives = 3; level = 1; frame = 0;
-  spawnTimer = 0; spawnInterval = 160; baseSpeed = 0.4;
+  spawnTimer = 0; spawnInterval = 160; baseSpeed = 0.2;
   currentInput = '';
   inputBox.textContent = '　';
   gameRunning = true;
