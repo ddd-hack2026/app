@@ -248,7 +248,7 @@ function drawBG() {
     ctx.moveTo(fl.x + ox, topY + 4); ctx.lineTo(fl.x + fl.w + ox, topYr + 4);
     ctx.lineTo(fl.x + fl.w + ox, botYr + 4); ctx.lineTo(fl.x + ox, botY + 4);
     ctx.closePath();
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.fill();
 
     // 本体（HPで色変化）
