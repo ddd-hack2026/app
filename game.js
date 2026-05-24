@@ -558,9 +558,21 @@ function triggerTNT(tntBarrel){
   const r=TNT_RADIUS*(bigExplosion?1.5:1);
   score+=500;
   barrels=barrels.filter(b=>{
-    if(b===tntBarrel)return false;
+    if(b===tntBarrel) return false;
     const dist=Math.hypot(b.x-tntBarrel.x,b.y-tntBarrel.y);
-    if(dist<r){addParticles(b.x,b.y,false);score+=b.display.length*5;return false;}
+    if(dist<r){
+      addParticles(b.x,b.y,false);
+      score+=b.display.length*5;
+      if(b.type==='boss'){
+        // ボスがTNT範囲内で消滅した場合、ボス撃破処理を行う
+        score += 5000;
+        addFloatingText(b.x,b.y-30,'★ BOSS DOWN ★','#ffff00',20);
+        bossActive = false; rageMode = false;
+        combo += 10; comboKill();
+        setTimeout(showUpgrade, 500);
+      }
+      return false;
+    }
     return true;
   });
   floors.forEach(fl=>{
