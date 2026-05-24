@@ -261,7 +261,7 @@ function spawnBarrel(forceType=null){
   }
   if(type==='heavy'){
     const lang=useJP?'jp':'en';
-    const long=WORDS[lang].hard;
+    const long=WORDS[lang].normal;
     const w=long[Math.floor(Math.random()*long.length)];
     display=w.display;input=w.input;
   }
