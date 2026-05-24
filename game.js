@@ -182,7 +182,7 @@ function setDiff(i, el) {
 
 function toggleMode() {
   useJP = !useJP;
-  document.getElementById('mode-btn').textContent = 'モード: ' + (useJP ? 'ひらがな(roma)' : 'English');
+  document.getElementById('mode-btn').textContent = 'モード: ' + (useJP ? 'ひらがな(ローマ)' : 'English');
 }
 
 function updateHUD() {
