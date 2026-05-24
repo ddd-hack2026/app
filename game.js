@@ -33,10 +33,10 @@ const WORDS={
       {display:'うごかす',input:'ugokasu'},{display:'こどもの',input:'kodomono'},
     ],
     hard:[
-      {display:'でんしゃ',input:'densya'},{display:'ひこうき',input:'hikouki'},{display:'たべもの',input:'tabemono'},
-      {display:'のみもの',input:'nomimono'},{display:'おにぎり',input:'onigiri'},{display:'たんぽぽ',input:'tanpopo'},
-      {display:'かんがえる',input:'kangaeru'},{display:'はなびら',input:'hanabira'},{display:'うごかない',input:'ugokanai'},
-      {display:'ふしぎな',input:'husigina'},{display:'おおきなき',input:'ookinaki'},{display:'ゆめをみる',input:'yumewomiru'},
+      {display:'電車',input:'densya'},{display:'飛行機雲は象の様だ',input:'hikoukigumohazounoyouda'},{display:'食べ物残さず食べたら痩せる',input:'tabemonokosazutabetarayaseru'},
+      {display:'飲み物のもののけ',input:'nomimononomononoke'},{display:'おにぎりおにぎりちょいと詰めて',input:'onigirionigirityoitotumete'},{display:'たんぽぽポカポカ陽気',input:'tanpopopokapokayouki'},
+      {display:'カエルが考える',input:'kaerugakanngaeru'},{display:'はなびらびらびら',input:'hanabirabirabira'},{display:'うごかない像を象が動かすゾウ',input:'ugokanaizouwozougaugokasuzou'},
+      {display:'ふしぎな',input:'husigina'},{display:'この木なんの木大きな木',input:'konokinannnokiookinaki'},{display:'ゆめをみる',input:'yumewomiru'},
     ],
   },
   en:{
