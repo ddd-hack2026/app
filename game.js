@@ -869,7 +869,7 @@ function spawnBoss(){
   const fl0=floors[0];
   const sx=fl0.x+50,sy=floorY(fl0,sx)-22;
   const lang=useJP?'jp':'en';
-  const words=WORDS[lang].hard;
+  const words=WORDS[lang].normal;
   const w=words[Math.floor(Math.random()*words.length)];
   barrels.push({
     x:sx,y:sy,vx:.35,vy:0,
