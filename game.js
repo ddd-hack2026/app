@@ -126,7 +126,7 @@ const upgradePanel=document.getElementById('upgrade-panel');
 // ══════════════════════════════════════════════
 let floors=[],barrels=[],particles=[],explosions=[],floatingTexts=[];
 let score=0,lives=3,level=1,frame=0;
-let spawnTimer=0,spawnInterval=140,baseSpeed=5.0;
+let spawnTimer=0,spawnInterval=40,baseSpeed=1.0;
 let gameRunning=false,currentInput='';
 let gameScene='title';
 let useJP=true,diffIndex=0;
@@ -243,10 +243,10 @@ function spawnBarrel(forceType=null){
   } else {
     const r=Math.random();
     if(r<TNT_CHANCE*(rageMode?1.5:1)) type='tnt';
-    else if(r<0.7) type='fast';
-    else if(r<0.28) type='heavy';
+    else if(r<0.3) type='fast';
+    else if(r<0.4) type='heavy';
     else if(r<0.5) type='split';
-    else if(r<0.40) type='curse';
+    else if(r<0.6) type='curse';
   }
 
   const def=BARREL_TYPES[type];
