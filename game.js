@@ -69,13 +69,18 @@ const FLOOR_DEFS=[
 // barrel type defs
 const BARREL_TYPES={
   normal:{color:'#a05020',label:'',hp:1,speed:1,score:1},
-  heavy:{color:'#4444aa',label:'HEAVY',hp:3,speed:0.5,score:3},
+  heavy:{color:'#4444aa',label:'HEAVY',hp:2,speed:0.5,score:3},
   split:{color:'#229922',label:'SPLIT',hp:1,speed:0.9,score:1.5},
   fast:{color:'#ff8800',label:'FAST',hp:1,speed:2.2,score:2},
   curse:{color:'#880088',label:'CURSE',hp:1,speed:1,score:4},
   tnt:{color:'#cc1100',label:'TNT',hp:1,speed:1,score:0},
   boss:{color:'#dd2200',label:'BOSS',hp:10,speed:0.4,score:20},
 };
+
+// 事前ロード用（canvasに直接描画するためのImageオブジェクト）
+const START_IMG = new Image(); START_IMG.src = 'images/start_bg.png';
+const GAME_IMG  = new Image(); GAME_IMG.src  = 'images/game_bg.png';
+const GAMEOVER_IMG = new Image(); GAMEOVER_IMG.src = 'images/gameover_bg.png';
 
 // specials
 const SPECIALS=[
@@ -122,24 +127,6 @@ let upgradeQueue=[];
 let upgrades={comboBonus:0,tntPower:0,slowPower:0,extraLives:0,scoreBoost:0};
 let animFrame=null;
 let activeSpecial=null;
-
-// ══════════════════════════════════════════════
-//  IMAGE LOADING / OVERLAY BACKGROUND HELPERS
-// ══════════════════════════════════════════════
-const IMAGES={};
-function preloadImages(list){
-  list.forEach(path=>{
-    const img=new Image();
-    img.onload=()=>{console.info('Loaded image:',path);IMAGES[path]=img;};
-    img.onerror=()=>{console.warn('Image not found or failed to load:',path);};
-    img.src=path;
-  });
-}
-
-function setOverlayBackground(imgPath){
-  if(!imgPath) { overlay.style.background='linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.6))'; return; }
-  overlay.style.background = `linear-gradient(180deg,rgba(0,0,0,.18),rgba(0,0,0,.6)), url(${imgPath}) center/cover no-repeat`;
-}
 
 // ══════════════════════════════════════════════
 //  FLOOR INIT
@@ -279,25 +266,34 @@ function spawnBarrel(forceType=null){
 //  BACKGROUND
 // ══════════════════════════════════════════════
 function drawBG(){
-  const bgImg = IMAGES['images/game_bg.png'];
-  if(bgImg && bgImg.complete){
-    const cw=canvas.width,ch=canvas.height;
-    const scale=Math.max(cw/bgImg.width,ch/bgImg.height);
-    const dw=bgImg.width*scale,dH=bgImg.height*scale;
-    const dx=(cw-dw)/2,dy=(ch-dH)/2;
-    ctx.drawImage(bgImg,dx,dy,dw,dH);
-  } else {
-    ctx.fillStyle='#0a0005';
-    ctx.fillRect(0,0,640,560);
+  // 描画用背景画像がロードされていればそれを表示（タイトル/ゲーム/ゲームオーバー別）
+  function drawImageCover(img){
+    const iw = img.naturalWidth || img.width;
+    const ih = img.naturalHeight || img.height;
+    if(!iw||!ih) return;
+    const canvasRatio = 640/560;
+    const imgRatio = iw/ih;
+    let dw,dh,dx,dy;
+    if(imgRatio>canvasRatio){
+      dh = 560; dw = dh*imgRatio; dx = (640-dw)/2; dy = 0;
+    } else {
+      dw = 640; dh = dw/imgRatio; dx = 0; dy = (560-dh)/2;
+    }
+    ctx.drawImage(img, dx, dy, dw, dh);
   }
+
+  if(gameScene==='title' && START_IMG && START_IMG.complete){ drawImageCover(START_IMG); return; }
+  if(gameScene==='gameover' && GAMEOVER_IMG && GAMEOVER_IMG.complete){ drawImageCover(GAMEOVER_IMG); return; }
+  if(GAME_IMG && GAME_IMG.complete){ drawImageCover(GAME_IMG); }
+  else if(START_IMG && START_IMG.complete){ drawImageCover(START_IMG); }
+  // フォールバックのグリッド背景
+  ctx.fillStyle='#0a0005';
+  ctx.fillRect(0,0,640,560);
   ctx.strokeStyle='rgba(80,20,120,.12)';
   ctx.lineWidth=1;
   for(let x=0;x<640;x+=32){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,560);ctx.stroke();}
   for(let y=0;y<560;y+=32){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(640,y);ctx.stroke();}
-  for(let y=0;y<560;y+=3){
-    ctx.fillStyle='rgba(0,0,0,.18)';
-    ctx.fillRect(0,y,640,1);
-  }
+  for(let y=0;y<560;y+=3){ ctx.fillStyle='rgba(0,0,0,.18)'; ctx.fillRect(0,y,640,1); }
 }
 
 function drawFloors(){
@@ -557,22 +553,15 @@ function triggerTNT(tntBarrel){
   addExplosion(tntBarrel.x,tntBarrel.y,bigExplosion);
   const r=TNT_RADIUS*(bigExplosion?1.5:1);
   score+=500;
+  // find up to 2 nearest barrels in range
+  const inRange=barrels
+    .filter(b=>b!==tntBarrel&&Math.hypot(b.x-tntBarrel.x,b.y-tntBarrel.y)<r)
+    .sort((a,b)=>Math.hypot(a.x-tntBarrel.x,a.y-tntBarrel.y)-Math.hypot(b.x-tntBarrel.x,b.y-tntBarrel.y))
+    .slice(0,2);
+  const destroySet=new Set(inRange);
   barrels=barrels.filter(b=>{
-    if(b===tntBarrel) return false;
-    const dist=Math.hypot(b.x-tntBarrel.x,b.y-tntBarrel.y);
-    if(dist<r){
-      addParticles(b.x,b.y,false);
-      score+=b.display.length*5;
-      if(b.type==='boss'){
-        // ボスがTNT範囲内で消滅した場合、ボス撃破処理を行う
-        score += 5000;
-        addFloatingText(b.x,b.y-30,'★ BOSS DOWN ★','#ffff00',20);
-        bossActive = false; rageMode = false;
-        combo += 10; comboKill();
-        setTimeout(showUpgrade, 500);
-      }
-      return false;
-    }
+    if(b===tntBarrel)return false;
+    if(destroySet.has(b)){addParticles(b.x,b.y,false);addExplosion(b.x,b.y,false);score+=b.display.length*5;return false;}
     return true;
   });
   floors.forEach(fl=>{
@@ -634,11 +623,20 @@ function fireSpecial(){
   showSpecialFlash(sp.name+'\n'+sp.desc);
 
   if(sp.id==='burst'){
+    let bossKilled=false;
     barrels.forEach(b=>{
       addParticles(b.x,b.y,true);addExplosion(b.x,b.y,true);
       score+=b.input.length*20;
+      if(b.type==='boss')bossKilled=true;
     });
     barrels=[];
+    if(bossKilled){
+      score+=5000;
+      bossActive=false;rageMode=false;
+      combo+=10;comboKill();
+      addFloatingText(320,180,'★ BOSS DOWN ★','#ffff00',20);
+      setTimeout(showUpgrade,500);
+    }
     addFloatingText(320,200,'🔥 FIRE BURST!',`#ff4400`,20);
   } else if(sp.id==='slow'){
     slowTimer=300+(upgrades.slowPower*120);
@@ -683,7 +681,10 @@ function updateBarrel(b){
     }
   }
   b.rot+=b.vx*.05;
-  if(b.y>590||b.x<-80||b.x>720)return'miss';
+  if(b.y>590||b.x<-80||b.x>720){
+    if(b.type==='boss'){bossActive=false;return'bossmiss';}
+    return'miss';
+  }
   return'ok';
 }
 
@@ -842,7 +843,7 @@ function showUpgrade(){
 // ══════════════════════════════════════════════
 function spawnBoss(){
   if(bossActive)return;
-  bossActive=true;bossHP=8+diffIndex*3;
+  bossActive=true;bossHP=5+diffIndex*2;
   const fl0=floors[0];
   const sx=fl0.x+50,sy=floorY(fl0,sx)-22;
   const lang=useJP?'jp':'en';
@@ -894,9 +895,14 @@ function loop(){
   for(let i=barrels.length-1;i>=0;i--){
     const b=barrels[i];
     const res=updateBarrel(b);
-    if(res==='miss'){
+    if(res==='miss'||res==='bossmiss'){
+      const dmg=res==='bossmiss'?3:1;
       barrels.splice(i,1);
-      lives--;missEffectTimer=12;
+      lives-=dmg;missEffectTimer=12;
+      if(res==='bossmiss'){
+        addFloatingText(320,280,'💀 BOSS ESCAPED! -3','#ff0000',16);
+        showComboFlash('💀 BOSS ESCAPED!','#ff0000');
+      }
       inputBox.classList.add('miss');
       setTimeout(()=>inputBox.classList.remove('miss'),350);
       breakCombo();
@@ -960,9 +966,25 @@ function startGame(){
 function endGame(){
   gameRunning=false;gameScene='gameover';
   ctx.clearRect(0,0,640,560);
-  ctx.fillStyle='#000';ctx.fillRect(0,0,640,560);
-  for(let y=0;y<560;y+=3){ctx.fillStyle='rgba(80,0,0,.15)';ctx.fillRect(0,y,640,1);}
-  setOverlayBackground('images/gameover_bg.png');
+  // 可能なら gameover 画像をキャンバス全面に描画
+  if(typeof GAMEOVER_IMG !== 'undefined' && GAMEOVER_IMG.complete){
+    const iw = GAMEOVER_IMG.naturalWidth || GAMEOVER_IMG.width;
+    const ih = GAMEOVER_IMG.naturalHeight || GAMEOVER_IMG.height;
+    if(iw && ih){
+      const canvasRatio = 640/560;
+      const imgRatio = iw/ih;
+      let dw,dh,dx,dy;
+      if(imgRatio>canvasRatio){ dh = 560; dw = dh*imgRatio; dx = (640-dw)/2; dy = 0; }
+      else { dw = 640; dh = dw/imgRatio; dx = 0; dy = (560-dh)/2; }
+      ctx.drawImage(GAMEOVER_IMG, dx, dy, dw, dh);
+    } else {
+      ctx.fillStyle='#000';ctx.fillRect(0,0,640,560);
+      for(let y=0;y<560;y+=3){ctx.fillStyle='rgba(80,0,0,.15)';ctx.fillRect(0,y,640,1);} 
+    }
+  } else {
+    ctx.fillStyle='#000';ctx.fillRect(0,0,640,560);
+    for(let y=0;y<560;y+=3){ctx.fillStyle='rgba(80,0,0,.15)';ctx.fillRect(0,y,640,1);} 
+  }
   overlay.style.display='flex';
   overlay.innerHTML=`
     <h1 style="font-size:32px;color:#ff2200;text-shadow:0 0 24px #ff4400,2px 2px #000;text-align:center;">GAME<br>OVER</h1>
@@ -996,10 +1018,4 @@ document.addEventListener('keydown',e=>{
 });
 
 // start title loop
-// preload common images (missing files will be warned in console)
-preloadImages(['images/start_bg.png','images/gameover_bg.png','images/game_bg.png']);
-
-// set initial overlay background for title
-setOverlayBackground('images/start_bg.png');
-
 loop();
