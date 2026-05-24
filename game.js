@@ -243,10 +243,10 @@ function spawnBarrel(forceType=null){
   } else {
     const r=Math.random();
     if(r<TNT_CHANCE*(rageMode?1.5:1)) type='tnt';
+    else if(r<0.2) type='split';
     else if(r<0.3) type='fast';
     else if(r<0.4) type='heavy';
-    else if(r<0.5) type='split';
-    else if(r<0.6) type='curse';
+    else if(r<0.8) type='curse';
   }
 
   const def=BARREL_TYPES[type];
