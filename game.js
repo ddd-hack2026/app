@@ -1,3 +1,13 @@
+//樽壊した音
+const barrelBreakSound = new Audio("sound/0010095.mp3");
+document.addEventListener("click", () => {
+  barrelBreakSound.play();
+  barrelBreakSound.pause();
+  barrelBreakSound.currentTime = 0;
+}, { once: true });
+//爆発音
+const explosionSound = new Audio("sound/Explosion04-1(short).mp3");
+
 // ══════════════════════════════════════════════
 //  WORD LISTS
 // ══════════════════════════════════════════════
@@ -682,6 +692,9 @@ function updateBarrel(b){
   }
   b.rot+=b.vx*.05;
   if(b.y>590||b.x<-80||b.x>720){
+     // 樽が壊れた音を鳴らす
+    barrelBreakSound.currentTime = 0;
+    barrelBreakSound.play();
     if(b.type==='boss'){bossActive=false;return'bossmiss';}
     return'miss';
   }
@@ -726,7 +739,13 @@ function checkTyping(){
         barrels.forEach(b=>b.typed='');
         return;
       }
+      // ★★★ 樽が壊れる瞬間（ここで音を鳴らす）★★★
+        barrelBreakSound.currentTime = 0;
+        barrelBreakSound.play();
       if(target.type==='tnt'){
+         // ★ 爆発音を鳴らす
+    explosionSound.currentTime = 0;
+    explosionSound.play();
         triggerTNT(target);
         barrels=barrels.filter(b=>b!==target);
       } else if(target.type==='split'){
