@@ -1,164 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  background: #000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  font-family: 'Press Start 2P', monospace;
-  user-select: none;
-}
-
-#wrap {
-  position: relative;
-  width: 640px;
-  height: 560px;
-}
-
-canvas {
-  display: block;
-  width: 640px;
-  height: 560px;
-  image-rendering: pixelated;
-}
-
-/* HUD */
-#hud {
-  position: absolute;
-  top: 6px;
-  left: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 12px;
-  font-size: 9px;
-  color: #fff;
-  pointer-events: none;
-  z-index: 5;
-  text-shadow: 1px 1px #000;
-}
-
-/* 入力表示 */
-#input-box {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  border: 2px solid #fc0;
-  border-radius: 4px;
-  padding: 5px 18px;
-  font-size: 11px;
-  color: #fc0;
-  letter-spacing: 2px;
-  min-width: 180px;
-  text-align: center;
-  pointer-events: none;
-  z-index: 5;
-}
-
-/* オーバーレイ */
-#overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.55));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  padding-bottom: 36px;
-  z-index: 20;
-}
-
-.menu-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  padding: 22px 24px;
-  border-radius: 20px;
-  background: rgba(8, 10, 16, 0.58);
-  border: 1px solid rgba(255, 204, 0, 0.22);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(2px);
-}
-
-#overlay button {
-  font-family: 'Press Start 2P', monospace;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: transform 0.1s, background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-#overlay button:hover {
-  transform: scale(1.03);
-}
-
-/* 難易度ボタン */
-#diff-wrap {
-  display: flex;
-  gap: 10px;
-}
-
-.diff-btn {
-  font-size: 9px;
-  background: rgba(12, 12, 12, 0.86);
-  color: #ffe8b2;
-  border: 1px solid rgba(255, 212, 120, 0.45);
-  padding: 10px 16px;
-  min-width: 108px;
-}
-
-.diff-btn.active,
-.diff-btn:hover {
-  background: rgba(255, 120, 54, 0.2);
-  color: #fff;
-  border-color: #ffcc66;
-}
-
-#start-btn {
-  font-size: 11px;
-  background: linear-gradient(180deg, #ff9a32, #db4400);
-  color: #fff;
-  padding: 14px 32px;
-  box-shadow: 0 8px 18px rgba(227, 82, 0, 0.35);
-}
-
-#start-btn:hover {
-  background: linear-gradient(180deg, #ffb14d, #e65510);
-}
-
-/* モード切替ボタン */
-#mode-btn {
-  font-size: 7px;
-  background: rgba(0, 0, 0, 0.55);
-  color: #ffdca9;
-  border: 1px solid rgba(255, 204, 0, 0.24);
-  padding: 8px 14px;
-}
-
-#mode-btn:hover {
-  color: #fff;
-  border-color: #ffe08a;
-}
-
-/* ヒント */
-p.hint {
-  margin-top: 10px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 7px;
-  color: #333;
-  text-align: center;
-}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:'Press Start 2P',monospace;user-select:none;overflow:hidden}
+#wrap{position:relative;width:640px;height:560px}
+canvas{display:block;width:640px;height:560px;image-rendering:pixelated}
+#hud{position:absolute;top:0;left:0;width:100%;display:flex;justify-content:space-between;align-items:flex-start;padding:6px 10px;pointer-events:none;z-index:5}
+#hud-left{display:flex;flex-direction:column;gap:3px}
+#hud-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.hud-val{font-size:8px;color:#fff;text-shadow:1px 1px #000,0 0 8px rgba(255,200,0,.6)}
+#s-combo{font-size:11px;color:#ffcc00;text-shadow:0 0 10px #ff8800;transition:transform .1s}
+#s-special{font-size:7px;color:#88ffff}
+#gauge-wrap{width:120px;height:8px;background:rgba(0,0,0,.6);border:1px solid #446;border-radius:4px;overflow:hidden}
+#gauge-fill{height:100%;width:0%;background:linear-gradient(90deg,#4488ff,#88ffff);border-radius:4px;transition:width .2s}
+#input-box{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.88);border:2px solid #fc0;border-radius:4px;padding:5px 18px;font-size:11px;color:#fc0;letter-spacing:2px;min-width:180px;text-align:center;pointer-events:none;z-index:5;transition:border-color .1s,box-shadow .1s}
+#input-box.miss{border-color:#ff2200;box-shadow:0 0 12px #ff2200;color:#ff4400}
+#overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.6));display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:32px;z-index:20}
+.menu-panel{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 22px;border-radius:16px;background:rgba(8,10,16,.72);border:1px solid rgba(255,204,0,.25);backdrop-filter:blur(4px)}
+#overlay h1{font-size:28px;color:#ff4400;text-shadow:0 0 20px #ff2200,2px 2px #000;text-align:center;line-height:1.4}
+#overlay .sub{font-size:9px;color:#ffcc88;margin-top:-4px}
+#diff-wrap{display:flex;gap:8px}
+.diff-btn{font-family:'Press Start 2P',monospace;font-size:8px;background:rgba(12,12,12,.9);color:#ffe8b2;border:1px solid rgba(255,212,120,.4);border-radius:6px;padding:9px 14px;min-width:90px;cursor:pointer;transition:all .1s}
+.diff-btn.active,.diff-btn:hover{background:rgba(255,120,54,.25);color:#fff;border-color:#ffcc66}
+#start-btn{font-family:'Press Start 2P',monospace;font-size:10px;background:linear-gradient(180deg,#ff9a32,#db4400);color:#fff;border:none;border-radius:8px;padding:13px 30px;cursor:pointer;box-shadow:0 6px 16px rgba(227,82,0,.4)}
+#start-btn:hover{background:linear-gradient(180deg,#ffb14d,#e65510);transform:scale(1.03)}
+#mode-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:rgba(0,0,0,.6);color:#ffdca9;border:1px solid rgba(255,204,0,.25);border-radius:6px;padding:7px 12px;cursor:pointer}
+#mode-btn:hover{color:#fff;border-color:#ffe08a}
+p.hint{margin-top:8px;font-family:'Press Start 2P',monospace;font-size:6px;color:#333;text-align:center}
+#combo-flash{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Press Start 2P',monospace;font-size:0px;color:#ffcc00;text-shadow:0 0 20px #ff8800;text-align:center;pointer-events:none;z-index:30;opacity:0;transition:opacity .15s}
+#rage-banner{position:absolute;top:80px;left:50%;transform:translateX(-50%);font-family:'Press Start 2P',monospace;font-size:14px;color:#ff2200;text-shadow:0 0 20px #ff4400;pointer-events:none;z-index:30;opacity:0}
+#special-flash{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);font-family:'Press Start 2P',monospace;font-size:0;color:#88ffff;text-shadow:0 0 30px #4488ff;text-align:center;pointer-events:none;z-index:35;opacity:0}
+#upgrade-panel{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:40}
+#upgrade-panel h2{font-size:11px;color:#ffcc00;text-shadow:0 0 12px #ff8800}
+.upg-btn{font-family:'Press Start 2P',monospace;font-size:7px;background:rgba(20,20,40,.9);color:#fff;border:1px solid #4488ff;border-radius:8px;padding:12px 20px;width:260px;cursor:pointer;line-height:1.6;transition:all .15s}
+.upg-btn:hover{background:rgba(60,80,180,.4);border-color:#88ffff;color:#88ffff}
