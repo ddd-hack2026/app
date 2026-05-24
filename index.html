@@ -1,37 +1,50 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DD KONG TYPING</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DD KONG TYPING — ACTION EDITION</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 <div id="wrap">
   <canvas id="c" width="640" height="560"></canvas>
-
   <div id="hud">
-    <span id="s-score">SCORE: 0</span>
-    <span id="s-lv">LV 1</span>
-    <span id="s-lives">❤️❤️❤️</span>
+    <div id="hud-left">
+      <span class="hud-val" id="s-score">SCORE: 0</span>
+      <span class="hud-val" id="s-lv">LV 1</span>
+      <span class="hud-val" id="s-lives">❤️❤️❤️</span>
+      <span id="s-combo"></span>
+    </div>
+    <div id="hud-right">
+      <span id="s-special"></span>
+      <div id="gauge-wrap"><div id="gauge-fill"></div></div>
+      <span class="hud-val" id="s-mult">x1.0</span>
+    </div>
   </div>
-
-  <div id="input-box">　</div>
-
+  <div id="combo-flash"></div>
+  <div id="rage-banner">💥 RAGE MODE 💥</div>
+  <div id="special-flash"></div>
+  <div id="input-box"></div>
+  <div id="upgrade-panel">
+    <h2>⚡ CHOOSE UPGRADE</h2>
+    <button class="upg-btn" id="upg0"></button>
+    <button class="upg-btn" id="upg1"></button>
+    <button class="upg-btn" id="upg2"></button>
+  </div>
   <div id="overlay">
     <div class="menu-panel">
       <div id="diff-wrap">
         <button class="diff-btn active" onclick="setDiff(0,this)">EASY</button>
-        <button class="diff-btn"        onclick="setDiff(1,this)">NORMAL</button>
-        <button class="diff-btn"        onclick="setDiff(2,this)">HARD</button>
+        <button class="diff-btn" onclick="setDiff(1,this)">NORMAL</button>
+        <button class="diff-btn" onclick="setDiff(2,this)">HARD</button>
       </div>
-      <button id="start-btn" onclick="startGame()">START</button>
-      <button id="mode-btn" onclick="toggleMode()">モード: ひらがな(roma)</button>
+      <button id="start-btn" onclick="startGame()">▶ START</button>
+      <button id="mode-btn" onclick="toggleMode()">MODE: ひらがな(ROMA)</button>
     </div>
   </div>
 </div>
-
 <p class="hint">IMEをオフ（半角モード）にしてプレイしてください</p>
 
 <script src="game.js"></script>
