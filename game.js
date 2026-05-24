@@ -33,7 +33,7 @@ const WORDS={
       {display:'うごかす',input:'ugokasu'},{display:'こどもの',input:'kodomono'},
     ],
     hard:[
-      {display:'電車',input:'densya'},{display:'飛行機雲だぞう',input:'hikoukigumodazou'},{display:'食べ物残さず食べたら痩せる',input:'tabemonokosazutabetarayaseru'},
+      {display:'電車',input:'densya'},{display:'飛行機雲だぞう',input:'hikoukigumodazou'},{display:'食べ物残さず食べたら痩せる',input:'tabemononokosazutabetarayaseru'},
       {display:'飲み物のもののけ',input:'nomimononomononoke'},{display:'おにぎりおにぎりちょいと詰めて',input:'onigirionigirityoitotumete'},{display:'たんぽぽポカポカ陽気',input:'tanpopopokapokayouki'},
       {display:'カエルが考える',input:'kaerugakanngaeru'},{display:'はなびらびらびら',input:'hanabirabirabira'},{display:'うごかない像を象が動かすゾウ',input:'ugokanaizouwozougaugokasuzou'},
       {display:'ふしぎな',input:'husigina'},{display:'この木なんの木大きな木',input:'konokinannnokiookinaki'},{display:'ゆめをみる',input:'yumewomiru'},
