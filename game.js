@@ -150,7 +150,7 @@ const sLives   = document.getElementById('s-lives');
 
 let floors = [], barrels = [], particles = [], explosions = [];
 let score = 0, lives = 3, level = 1, frame = 0;
-let spawnTimer = 0, spawnInterval = 160, baseSpeed = 0.2;
+let spawnTimer = 0, spawnInterval = 140, baseSpeed = 1.0;
 let gameRunning = false, currentInput = '';
 let gameScene = 'title';
 let useJP = true, diffIndex = 0;
@@ -158,6 +158,7 @@ const DIFFS      = ['easy', 'normal', 'hard'];
 const GRAVITY    = 0.2;
 const TNT_CHANCE = 0.18;
 const TNT_RADIUS = 120;
+let missEffectTimer = 0;
 
 // ══════════════════════════════════════════════
 //  足場初期化
@@ -425,8 +426,7 @@ function drawBarrel(b) {
   const tw = ctx.measureText(b.display).width;
 
   // 入力済み文字数に対応するdisplay文字を緑で表示
-  const typedLen  = b.typed.length; // input上の入力済み文字数
-  // jpモードではinputとdisplayの文字数が異なるため比率で判断
+  const typedLen  = b.typed.length;
   const ratio     = b.input.length > 0 ? typedLen / b.input.length : 0;
   const doneChars = Math.round(b.display.length * ratio);
   const donePart  = b.display.slice(0, doneChars);
@@ -614,6 +614,7 @@ function updateBarrel(b) {
   if (b.y > 580 || b.x < -60 || b.x > 700) return 'miss';
   return 'ok';
 }
+
 function normalizeN(str) {
   return str.replace(/nn/g, 'n');
 }
@@ -643,8 +644,7 @@ function inputComplete(typed, targetInput) {
 function checkTyping() {
   let target = null;
   for (const b of barrels) {
-   if (inputMatches(currentInput, b.input)) {
-
+    if (inputMatches(currentInput, b.input)) {
       if (!target || currentInput.length > target.typed.length) target = b;
     }
   }
@@ -664,6 +664,11 @@ function checkTyping() {
       currentInput = '';
       inputBox.textContent = '　';
     }
+  } else {
+    // どの樽にもマッチしない → タイプミス
+    missEffectTimer = 8;
+    currentInput = '';
+    inputBox.textContent = '　';
   }
 }
 
@@ -690,14 +695,22 @@ document.addEventListener('keydown', e => {
 //  メインループ
 // ══════════════════════════════════════════════
 function loop() {
+  // ミスエフェクト用にctxの状態を保存＆画面揺れ適用
+  ctx.save();
+  if (missEffectTimer > 0) {
+    ctx.translate((Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15);
+  }
+
   ctx.clearRect(0, 0, 640, 560);
   drawBG();
 
   if (gameScene === 'gameover') {
+    ctx.restore();
     return;
   }
 
   if (!gameRunning) {
+    ctx.restore();
     requestAnimationFrame(loop);
     return;
   }
@@ -721,17 +734,31 @@ function loop() {
     if (res === 'miss') {
       barrels.splice(i, 1);
       lives--;
+      missEffectTimer = 10; // 赤フラッシュ＋画面揺れ開始
       currentInput = '';
       inputBox.textContent = '　';
       barrels.forEach(b => b.typed = '');
       updateHUD();
-      if (lives <= 0) { endGame(); return; }
+      if (lives <= 0) {
+        endGame();
+        ctx.restore();
+        return;
+      }
     }
   }
 
   drawExplosions();
   barrels.forEach(b => drawBarrel(b));
   drawParticles();
+
+  // 赤いフラッシュオーバーレイ
+  if (missEffectTimer > 0) {
+    ctx.fillStyle = `rgba(255, 0, 0, ${missEffectTimer / 20})`;
+    ctx.fillRect(-50, -50, 740, 660);
+    missEffectTimer--;
+  }
+
+  ctx.restore();
   requestAnimationFrame(loop);
 }
 
@@ -744,6 +771,7 @@ function startGame() {
   score = 0; lives = 3; level = 1; frame = 0;
   spawnTimer = 0; spawnInterval = 160; baseSpeed = 0.2;
   currentInput = '';
+  missEffectTimer = 0;
   inputBox.textContent = '　';
   gameRunning = true;
   gameScene = 'playing';
