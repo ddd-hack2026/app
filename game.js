@@ -7,6 +7,9 @@ document.addEventListener("click", () => {
 }, { once: true });
 //爆発音
 const explosionSound = new Audio("sound/Explosion04-1(short).mp3");
+//gameoverの音
+const gameOverSound = new Audio("sound/gameover.mp3");
+
 
 // ══════════════════════════════════════════════
 //  WORD LISTS
@@ -65,7 +68,7 @@ const WORDS={
 // ══════════════════════════════════════════════
 //  CONSTANTS
 // ══════════════════════════════════════════════
-const FLOOR_H=14,BARREL_R=14,FLOOR_MAX_HP=6,GRAVITY=0.22;
+const FLOOR_H=14,BARREL_R=14,FLOOR_MAX_HP=6,GRAVITY=0.50;
 const TNT_CHANCE=0.12,TNT_RADIUS=120;
 const DIFFS=['easy','normal','hard'];
 const FLOOR_DEFS=[
@@ -123,7 +126,7 @@ const upgradePanel=document.getElementById('upgrade-panel');
 // ══════════════════════════════════════════════
 let floors=[],barrels=[],particles=[],explosions=[],floatingTexts=[];
 let score=0,lives=3,level=1,frame=0;
-let spawnTimer=0,spawnInterval=140,baseSpeed=1.0;
+let spawnTimer=0,spawnInterval=140,baseSpeed=5.0;
 let gameRunning=false,currentInput='';
 let gameScene='title';
 let useJP=true,diffIndex=0;
@@ -229,7 +232,7 @@ function getWordEntry(){
 
 function spawnBarrel(forceType=null){
   const entry=getWordEntry();
-  const speed=(baseSpeed+Math.random()*0.04+diffIndex*0.015)*(rageMode?1.35:1);
+  const speed=(baseSpeed+Math.random()*0.5+diffIndex*0.002)*(rageMode?1.5:1);
   const fl0=floors[0];
   const sx=fl0.x+30;
   const sy=floorY(fl0,sx)-BARREL_R;
@@ -240,9 +243,9 @@ function spawnBarrel(forceType=null){
   } else {
     const r=Math.random();
     if(r<TNT_CHANCE*(rageMode?1.5:1)) type='tnt';
-    else if(r<0.18) type='fast';
+    else if(r<0.7) type='fast';
     else if(r<0.28) type='heavy';
-    else if(r<0.35) type='split';
+    else if(r<0.5) type='split';
     else if(r<0.40) type='curse';
   }
 
@@ -588,7 +591,7 @@ function damageFloor(fl,dmg=1){
   if(fl.hp<=0){
     fl.broken=true;
     for(let i=0;i<20;i++){
-      particles.push({x:fl.x+Math.random()*fl.w,y:fl.y+Math.random()*FLOOR_H,vx:(Math.random()-.5)*6,vy:-Math.random()*4,life:1,size:4,color:'#cc3300'});
+      particles.push({x:fl.x+Math.random()*fl.w,y:fl.y+Math.random()*FLOOR_H,vx:(Math.random()-.10)*6,vy:-Math.random()*4,life:1,size:4,color:'#cc3300'});
     }
   }
 }
@@ -679,7 +682,7 @@ function updateBarrel(b){
         b.vx=fl.tilt>=0?Math.abs(b.vx):-Math.abs(b.vx);
         b.vxSet=true;damageFloor(fl,1);
       }
-      b.vx=Math.max(-4.5,Math.min(4.5,b.vx));
+      b.vx=Math.max(-7.5,Math.min(7.5,b.vx));
       landed=true;break;
     }
   }
@@ -966,7 +969,7 @@ function startGame(){
   initFloors();
   barrels=[];particles=[];explosions=[];floatingTexts=[];
   score=0;lives=3;level=1;frame=0;
-  spawnTimer=0;spawnInterval=160;baseSpeed=.2;
+  spawnTimer=0;spawnInterval=160;baseSpeed=9.9;
   currentInput='';missEffectTimer=0;
   combo=0;maxCombo=0;comboMult=1;specialGauge=0;
   missStreak=0;rageMode=false;
@@ -983,6 +986,8 @@ function startGame(){
 }
 
 function endGame(){
+  gameOverSound.currentTime = 0;
+    gameOverSound.play();
   gameRunning=false;gameScene='gameover';
   ctx.clearRect(0,0,640,560);
   // 可能なら gameover 画像をキャンバス全面に描画
