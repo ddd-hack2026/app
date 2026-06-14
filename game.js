@@ -1,9 +1,21 @@
 //樽壊した音
 const barrelBreakSound = new Audio("sound/0010095.mp3");
+function playSound(sound){
+  sound.currentTime = 0;
+  const result = sound.play();
+  if(result&&typeof result.catch==='function')result.catch(()=>{});
+}
 document.addEventListener("click", () => {
-  barrelBreakSound.play();
-  barrelBreakSound.pause();
-  barrelBreakSound.currentTime = 0;
+  const result = barrelBreakSound.play();
+  if(result&&typeof result.then==='function'){
+    result.then(()=>{
+      barrelBreakSound.pause();
+      barrelBreakSound.currentTime = 0;
+    }).catch(()=>{});
+  } else {
+    barrelBreakSound.pause();
+    barrelBreakSound.currentTime = 0;
+  }
 }, { once: true });
 //爆発音
 const explosionSound = new Audio("sound/Explosion04-1(short).mp3");
@@ -33,7 +45,7 @@ const WORDS={
       {display:'うごかす',input:'ugokasu'},{display:'こどもの',input:'kodomono'},
     ],
     hard:[
-      {display:'電車',input:'densya'},{display:'飛行機雲だぞう',input:'hikoukigumodazou'},{display:'食べ物残さず食べたら痩せる',input:'tabemononokosazutabetarayaseru'},
+      {display:'電車',input:'densya'},{display:'飛行機雲だぞう',input:'hikoukigumodazou'},{display:'食べ物残さず食べたら痩せる',input:'tabemonokosazutabetarayaseru'},
       {display:'飲み物のもののけ',input:'nomimononomononoke'},{display:'おにぎりおにぎりちょいと詰めて',input:'onigirionigirityoitotumete'},{display:'たんぽぽポカポカ陽気',input:'tanpopopokapokayouki'},
       {display:'カエルが考える',input:'kaerugakanngaeru'},{display:'はなびらびらびら',input:'hanabirabirabira'},{display:'うごかない像を象が動かすゾウ',input:'ugokanaizouwozougaugokasuzou'},
       {display:'ふしぎな',input:'husigina'},{display:'この木なんの木大きな木',input:'konokinannnokiookinaki'},{display:'ゆめをみる',input:'yumewomiru'},
@@ -65,12 +77,47 @@ const WORDS={
   }
 };
 
+const JP_WORD_POOLS={
+  easy:[
+    {display:'鳥',input:'tori'},{display:'庭',input:'niwa'},{display:'屋根',input:'yane'},
+    {display:'山',input:'yama'},{display:'海',input:'umi'},{display:'空',input:'sora'},
+    {display:'花',input:'hana'},{display:'川',input:'kawa'},{display:'月',input:'tsuki'},
+    {display:'星',input:'hoshi'},{display:'雨',input:'ame'},{display:'雪',input:'yuki'},
+    {display:'風',input:'kaze'},{display:'犬',input:'inu'},{display:'猫',input:'neko'},
+    {display:'本',input:'hon'},{display:'机',input:'tsukue'},{display:'椅子',input:'isu'},
+    {display:'橋',input:'hashi'},{display:'道',input:'michi'},{display:'水',input:'mizu'},
+    {display:'窓',input:'mado'},{display:'声',input:'koe'},{display:'朝',input:'asa'},
+  ],
+  normal:[
+    {display:'りんご',input:'ringo'},{display:'みかん',input:'mikan'},{display:'さかな',input:'sakana'},
+    {display:'時計',input:'tokei'},{display:'電車',input:'densha'},{display:'学校',input:'gakkou'},
+    {display:'公園',input:'kouen'},{display:'図書館',input:'toshokan'},{display:'台所',input:'daidokoro'},
+    {display:'夕焼け',input:'yuuyake'},{display:'青空',input:'aozora'},{display:'手紙',input:'tegami'},
+    {display:'飛行機',input:'hikouki'},{display:'自転車',input:'jitensha'},{display:'音楽',input:'ongaku'},
+    {display:'野菜',input:'yasai'},{display:'荷物',input:'nimotsu'},{display:'家族',input:'kazoku'},
+    {display:'友達',input:'tomodachi'},{display:'写真',input:'shashin'},{display:'出口',input:'deguchi'},
+    {display:'入口',input:'iriguchi'},{display:'地図',input:'chizu'},{display:'小鳥',input:'kotori'},
+  ],
+  hard:[
+    {display:'夏休み',input:'natsuyasumi'},{display:'古い屋根',input:'furuiyane'},
+    {display:'庭の小鳥',input:'niwanokotori'},{display:'雨上がりの道',input:'ameagarinomichi'},
+    {display:'夕焼けの空',input:'yuuyakenosora'},{display:'図書館の本',input:'toshokannohon'},
+    {display:'小さな橋',input:'chiisanahashi'},{display:'静かな公園',input:'shizukanakouen'},
+    {display:'青い自転車',input:'aoijitensha'},{display:'朝の電車',input:'asanodensha'},
+    {display:'風にゆれる花',input:'kazeniyureruhana'},{display:'屋根の上の猫',input:'yanenouenoneko'},
+    {display:'海までの地図',input:'umimadenochizu'},{display:'学校帰りの道',input:'gakkougaerinomichi'},
+    {display:'水たまりの月',input:'mizutamarinotsuki'},
+  ],
+};
+
 // ══════════════════════════════════════════════
 //  CONSTANTS
 // ══════════════════════════════════════════════
 const FLOOR_H=14,BARREL_R=14,FLOOR_MAX_HP=6,GRAVITY=0.50;
 const TNT_CHANCE=0.12,TNT_RADIUS=120;
 const DIFFS=['easy','normal','hard'];
+const SPEED_START=0.85,SPEED_MAX=1.65,SPEED_GROWTH=0.003;
+const FLOOR_HP_BY_INDEX=[999,4,7,11,999];
 const FLOOR_DEFS=[
   {x:20,y:100,w:260,tilt:18,dropDir:1},
   {x:200,y:200,w:400,tilt:-16,dropDir:-1},
@@ -140,6 +187,7 @@ let upgradeQueue=[];
 let upgrades={comboBonus:0,tntPower:0,slowPower:0,extraLives:0,scoreBoost:0};
 let animFrame=null;
 let activeSpecial=null;
+let barrelTypeWeights=null;
 
 // ══════════════════════════════════════════════
 //  FLOOR INIT
@@ -147,7 +195,8 @@ let activeSpecial=null;
 function initFloors(){
   floors=FLOOR_DEFS.map((def,i)=>({
     ...def,
-    hp:(i===0||i===4)?999:FLOOR_MAX_HP,
+    hp:FLOOR_HP_BY_INDEX[i]||FLOOR_MAX_HP,
+    maxHp:FLOOR_HP_BY_INDEX[i]||FLOOR_MAX_HP,
     broken:false,shakeT:0
   }));
 }
@@ -223,11 +272,93 @@ function addFloatingText(x,y,text,color='#ffcc00',size=14){
 // ══════════════════════════════════════════════
 function getWordEntry(){
   const lang=useJP?'jp':'en';
-  const list=WORDS[lang][DIFFS[diffIndex]];
+  const list=getGeneratedWordPool(lang,DIFFS[diffIndex]);
   const usedInputs=new Set(barrels.map(b=>b.input));
   const avail=list.filter(w=>!usedInputs.has(w.input));
   const pool=avail.length>0?avail:list;
   return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function makeJPWord(syllableCount){
+  const syllables=[
+    ['あ','a'],['い','i'],['う','u'],['え','e'],['お','o'],
+    ['か','ka'],['き','ki'],['く','ku'],['け','ke'],['こ','ko'],
+    ['さ','sa'],['し','shi'],['す','su'],['せ','se'],['そ','so'],
+    ['ざ','za'],['じ','ji'],['ず','zu'],['ぜ','ze'],['ぞ','zo'],
+    ['た','ta'],['ち','chi'],['つ','tsu'],['て','te'],['と','to'],
+    ['だ','da'],['ぢ','ji'],['づ','zu'],['で','de'],['ど','do'],
+    ['な','na'],['に','ni'],['ぬ','nu'],['ね','ne'],['の','no'],
+    ['は','ha'],['ひ','hi'],['ふ','fu'],['へ','he'],['ほ','ho'],
+    ['ま','ma'],['み','mi'],['む','mu'],['め','me'],['も','mo'],
+    ['や','ya'],['ゆ','yu'],['よ','yo'],
+    ['ら','ra'],['り','ri'],['る','ru'],['れ','re'],['ろ','ro'],
+    ['わ','wa'],['ん','n']
+  ];
+  let display='',input='';
+  for(let i=0;i<syllableCount;i++){
+    const s=syllables[Math.floor(Math.random()*syllables.length)];
+    display+=s[0];input+=s[1];
+  }
+  return {display,input};
+}
+
+function makeENWord(length){
+  const starts=['b','c','d','f','g','h','j','k','l','m','n','p','r','s','t','v','w'];
+  const vowels=['a','e','i','o','u'];
+  const ends=['n','r','s','t','l','m','ck','nd','sh',''];
+  let word='';
+  while(word.length<length){
+    word+=starts[Math.floor(Math.random()*starts.length)];
+    word+=vowels[Math.floor(Math.random()*vowels.length)];
+    if(Math.random()<0.45)word+=ends[Math.floor(Math.random()*ends.length)];
+  }
+  word=word.slice(0,length);
+  return {display:word,input:word};
+}
+
+function getGeneratedWordPool(lang,diff){
+  if(lang==='jp')return JP_WORD_POOLS[diff]||WORDS.jp[diff];
+  const fallback=WORDS[lang][diff];
+  const count=48;
+  const seen=new Set();
+  const pool=[];
+  for(let guard=0;pool.length<count&&guard<count*8;guard++){
+    const entry=lang==='jp'
+      ? makeJPWord(diff==='easy'?2:diff==='normal'?3:5+Math.floor(Math.random()*2))
+      : makeENWord(diff==='easy'?3:diff==='normal'?5:8);
+    if(entry.input.length<2||seen.has(entry.input))continue;
+    seen.add(entry.input);
+    pool.push(entry);
+  }
+  return pool.length?pool:fallback;
+}
+
+function randomizeBarrelTypeWeights(){
+  barrelTypeWeights={
+    normal:42+Math.random()*26,
+    split:8+Math.random()*10,
+    fast:7+Math.random()*12,
+    heavy:7+Math.random()*10,
+    curse:8+Math.random()*16,
+    tnt:5+Math.random()*10,
+  };
+}
+
+function pickBarrelType(){
+  if(!barrelTypeWeights)randomizeBarrelTypeWeights();
+  const weights={...barrelTypeWeights};
+  if(rageMode){
+    weights.tnt*=1.4;
+    weights.fast*=1.25;
+    weights.curse*=1.2;
+  }
+  const total=Object.values(weights).reduce((sum,w)=>sum+w,0);
+  let r=Math.random()*total;
+  for(const type of Object.keys(weights)){
+    r-=weights[type];
+    if(r<=0)return type;
+  }
+  return 'normal';
 }
 
 function spawnBarrel(forceType=null){
@@ -241,12 +372,7 @@ function spawnBarrel(forceType=null){
   if(forceType){
     type=forceType;
   } else {
-    const r=Math.random();
-    if(r<TNT_CHANCE*(rageMode?1.5:1)) type='tnt';
-    else if(r<0.2) type='split';
-    else if(r<0.3) type='fast';
-    else if(r<0.4) type='heavy';
-    else if(r<0.8) type='curse';
+    type=pickBarrelType();
   }
 
   const def=BARREL_TYPES[type];
@@ -255,13 +381,13 @@ function spawnBarrel(forceType=null){
 
   if(type==='fast'){
     const lang=useJP?'jp':'en';
-    const short=WORDS[lang].easy;
+    const short=getGeneratedWordPool(lang,'easy');
     const w=short[Math.floor(Math.random()*short.length)];
     display=w.display;input=w.input;
   }
   if(type==='heavy'){
     const lang=useJP?'jp':'en';
-    const long=WORDS[lang].normal;
+    const long=getGeneratedWordPool(lang,'normal');
     const w=long[Math.floor(Math.random()*long.length)];
     display=w.display;input=w.input;
   }
@@ -323,7 +449,7 @@ function drawFloors(){
     ctx.closePath();
     ctx.fillStyle='rgba(0,0,0,.5)';ctx.fill();
 
-    const ratio=fl.hp/FLOOR_MAX_HP;
+    const ratio=Math.max(0,Math.min(1,fl.hp/(fl.maxHp||FLOOR_MAX_HP)));
     const r=Math.floor(204-(1-ratio)*100);
     const g=Math.floor(51-(1-ratio)*40);
     ctx.beginPath();
@@ -696,8 +822,7 @@ function updateBarrel(b){
   b.rot+=b.vx*.05;
   if(b.y>590||b.x<-80||b.x>720){
      // 樽が壊れた音を鳴らす
-    barrelBreakSound.currentTime = 0;
-    barrelBreakSound.play();
+    playSound(barrelBreakSound);
     if(b.type==='boss'){bossActive=false;return'bossmiss';}
     return'miss';
   }
@@ -707,18 +832,58 @@ function updateBarrel(b){
 // ══════════════════════════════════════════════
 //  TYPING
 // ══════════════════════════════════════════════
+const ROMA_VARIANT_GROUPS=[
+  ['shi','si'],['chi','ti'],['tsu','tu'],['fu','hu'],
+  ['ji','zi','di'],['zu','du'],
+  ['sha','sya'],['shu','syu'],['sho','syo'],
+  ['cha','tya'],['chu','tyu'],['cho','tyo'],
+  ['ja','jya','zya'],['ju','jyu','zyu'],['jo','jyo','zyo'],
+];
+const romaVariantCache=new Map();
+
 function normalizeN(s){return s.replace(/nn/g,'n');}
+function getRomaVariants(target){
+  if(romaVariantCache.has(target))return romaVariantCache.get(target);
+  const variants=new Set([target]);
+  let changed=true;
+  while(changed&&variants.size<256){
+    changed=false;
+    for(const word of [...variants]){
+      for(const group of ROMA_VARIANT_GROUPS){
+        for(const from of group){
+          let pos=word.indexOf(from);
+          while(pos!==-1){
+            for(const to of group){
+              if(to===from)continue;
+              const next=word.slice(0,pos)+to+word.slice(pos+from.length);
+              if(!variants.has(next)&&variants.size<256){
+                variants.add(next);
+                changed=true;
+              }
+            }
+            pos=word.indexOf(from,pos+1);
+          }
+        }
+      }
+    }
+  }
+  const result=[...variants];
+  romaVariantCache.set(target,result);
+  return result;
+}
 function inputMatches(typed,target){
   if(!typed.length)return false;
-  const nt=normalizeN(target);
-  if(nt.startsWith(normalizeN(typed)))return true;
-  if(typed.endsWith('n')&&nt.startsWith(normalizeN(typed.slice(0,-1)+'nn')))return true;
+  const typedN=normalizeN(typed);
+  for(const variant of getRomaVariants(target)){
+    if(normalizeN(variant).startsWith(typedN))return true;
+  }
   return false;
 }
 function inputComplete(typed,target){
-  const nt=normalizeN(target);
-  if(normalizeN(typed)===nt)return true;
-  if(typed.endsWith('n')&&normalizeN(typed.slice(0,-1)+'nn')===nt)return true;
+  const typedN=normalizeN(typed);
+  for(const variant of getRomaVariants(target)){
+    if(typedN===normalizeN(variant))return true;
+  }
   return false;
 }
 
@@ -743,12 +908,10 @@ function checkTyping(){
         return;
       }
       // ★★★ 樽が壊れる瞬間（ここで音を鳴らす）★★★
-        barrelBreakSound.currentTime = 0;
-        barrelBreakSound.play();
+        playSound(barrelBreakSound);
       if(target.type==='tnt'){
          // ★ 爆発音を鳴らす
-    explosionSound.currentTime = 0;
-    explosionSound.play();
+    playSound(explosionSound);
         triggerTNT(target);
         barrels=barrels.filter(b=>b!==target);
       } else if(target.type==='split'){
@@ -869,7 +1032,7 @@ function spawnBoss(){
   const fl0=floors[0];
   const sx=fl0.x+50,sy=floorY(fl0,sx)-22;
   const lang=useJP?'jp':'en';
-  const words=WORDS[lang].normal;
+  const words=getGeneratedWordPool(lang,'normal');
   const w=words[Math.floor(Math.random()*words.length)];
   barrels.push({
     x:sx,y:sy,vx:.35,vy:0,
@@ -905,7 +1068,7 @@ function loop(){
   if(spawnTimer>=si){
     spawnTimer=0;
     if(!bossActive)spawnBarrel();
-    baseSpeed=Math.min(.8,baseSpeed+.003);
+    baseSpeed=Math.min(SPEED_MAX,baseSpeed+SPEED_GROWTH);
     level=(frame/350|0)+1;
     updateHUD();
   }
@@ -969,25 +1132,26 @@ function startGame(){
   initFloors();
   barrels=[];particles=[];explosions=[];floatingTexts=[];
   score=0;lives=3;level=1;frame=0;
-  spawnTimer=0;spawnInterval=160;baseSpeed=9.9;
+  spawnTimer=0;spawnInterval=160;baseSpeed=SPEED_START;
   currentInput='';missEffectTimer=0;
   combo=0;maxCombo=0;comboMult=1;specialGauge=0;
   missStreak=0;rageMode=false;
   slowTimer=0;autoTimer=0;
   bossActive=false;bossHP=0;waveKills=0;wavesCleared=0;
   upgrades={comboBonus:0,tntPower:0,slowPower:0,extraLives:0,scoreBoost:0};
+  randomizeBarrelTypeWeights();
   inputBox.textContent='　';inputBox.classList.remove('miss');
   gameRunning=true;gameScene='playing';
   overlay.style.display='none';
   upgradePanel.style.display='none';
   updateHUD();
+  spawnBarrel();
   if(animFrame)cancelAnimationFrame(animFrame);
   loop();
 }
 
 function endGame(){
-  gameOverSound.currentTime = 0;
-    gameOverSound.play();
+  playSound(gameOverSound);
   gameRunning=false;gameScene='gameover';
   ctx.clearRect(0,0,640,560);
   // 可能なら gameover 画像をキャンバス全面に描画
